@@ -1,4 +1,4 @@
-import Board from "../board.js";
+import Board from '../board.js';
 import Tool from './tool.js'
 
 export default class Brush extends Tool{
@@ -33,8 +33,10 @@ export default class Brush extends Tool{
             
             if(this.options.round && Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2)) > this.options.radius)
               continue;
-
-            board.items[y + i][x + j] = this.options.object;
+            
+            try{
+              board.items[y + i][x + j] = this.options.object;
+            }catch(e){}
           }
         }
 

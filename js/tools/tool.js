@@ -4,17 +4,11 @@ export default class Tool{
   static current;
 
   constructor(options){
-
-    try{Tool.current.deactivate();}
-    catch(e){};
-
-    Tool.current = this;
-
     this.options = options;
 
     this.isMouseDown = false;
 
-    this.allowSelect = false;
+    this.selectVisible = false;
     this.selectStartX = -1;
     this.selectStartY = -1;
     this.selectEndX = 0;
@@ -29,9 +23,9 @@ export default class Tool{
 
   updateMousePos(event){
     const tool = Tool.current;
+    const [x, y] = tool.getMousePos(event);
 
-    if(tool.allowSelect && tool.isMouseDown){
-      const [x, y] = tool.getMousePos(event);
+    if(tool.isMouseDown){
       
       if(tool.selectStartX < 0) tool.selectStartX = x;
       if(tool.selectStartY < 0) tool.selectStartY = y;
@@ -39,30 +33,35 @@ export default class Tool{
       tool.selectEndX = x;
       tool.selectEndY = y;
 
+      tool.absSelectStartX = Math.min(x, tool.selectStartX)
+      tool.absSelectEndX = Math.max(x, tool.selectStartX)
+
+      tool.absSelectStartY = Math.min(y, tool.selectStartY)
+      tool.absSelectEndY = Math.max(y, tool.selectStartY)
+
     }
 
     tool.mouseMove(event);
     
-    if(tool.selectStartX > 0 && tool.selectStartY > 0){
-
-      Board.current.background.forEach(x => x.fill("white"));
+    Board.current.background.forEach(x => x.fill("white"));
+    if(tool.selectVisible && tool.selectStartX > 0 && tool.selectStartY > 0){
       
-      for(let i = tool.selectStartY; i <= tool.selectEndY; i++){
-        Board.current.background[i].fill("#5193fc", tool.selectStartX, tool.selectEndX+1);
+      for(let i = tool.absSelectStartY; i <= tool.absSelectEndY; i++){
+        Board.current.background[i].fill("#5193fc", tool.absSelectStartX, tool.absSelectEndX+1);
       }
 
+    }
+
+    if(!tool.isMouseDown) {
+      Board.current.background[y][x] = "#99c0ff";
     }
 
   }
 
   resetSelection(){
-
-    if(this.allowSelect){
-      Board.current.background.forEach(x => x.fill("white"))
-      this.selectStartX = -1;
-      this.selectStartY = -1;;
-    }
-
+    Board.current.background.forEach(x => x.fill("white"))
+    this.selectStartX = -1;
+    this.selectStartY = -1;;
   }
 
   getMousePos(event){
@@ -97,6 +96,10 @@ export default class Tool{
   }
 
   activate() {
+    try{Tool.current.deactivate();}
+    catch(e){};
+    Tool.current = this;
+
     Board.current.canvas.addEventListener("mousemove", this.updateMousePos);
     Board.current.canvas.addEventListener("mousedown", this.mouseDown);
     Board.current.canvas.addEventListener("mouseleave", this.mouseLeave);
