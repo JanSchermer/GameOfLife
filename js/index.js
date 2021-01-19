@@ -5,10 +5,10 @@ import Brush from './tools/brush.js'
 
 function main(){
 
-  const board = new Board(900, 900, 50, null);
+  const board = new Board(900, 900, 20, null);
   const editor = new Editor();
 
-  new Brush({}).activate();
+  new Brush({radius: 4, round: true, object: 1}).activate();
 
 }
 

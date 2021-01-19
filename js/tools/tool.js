@@ -4,6 +4,10 @@ export default class Tool{
   static current;
 
   constructor(options){
+
+    try{Tool.current.deactivate();}
+    catch(e){};
+
     Tool.current = this;
 
     this.options = options;
@@ -16,13 +20,14 @@ export default class Tool{
     this.selectEndX = 0;
     this.selectEndY = 0;
     this.selected = [];
+
   }
 
   // Abstract methodes for tools
   mouseMove(event) {}
   mouseRelease(event) {}
 
-  updateSelect(event){
+  updateMousePos(event){
     const tool = Tool.current;
 
     if(tool.allowSelect && tool.isMouseDown){
@@ -34,6 +39,12 @@ export default class Tool{
       tool.selectEndX = x;
       tool.selectEndY = y;
 
+    }
+
+    tool.mouseMove(event);
+    
+    if(tool.selectStartX > 0 && tool.selectStartY > 0){
+
       Board.current.background.forEach(x => x.fill("white"));
       
       for(let i = tool.selectStartY; i <= tool.selectEndY; i++){
@@ -41,6 +52,17 @@ export default class Tool{
       }
 
     }
+
+  }
+
+  resetSelection(){
+
+    if(this.allowSelect){
+      Board.current.background.forEach(x => x.fill("white"))
+      this.selectStartX = -1;
+      this.selectStartY = -1;;
+    }
+
   }
 
   getMousePos(event){
@@ -63,30 +85,30 @@ export default class Tool{
     const tool = Tool.current;
 
     tool.isMouseDown = false;
-
     tool.mouseRelease(event);
+    tool.resetSelection();
+  }
 
-    // Reset selection
-    if(tool.allowSelect){
-      Board.current.background.forEach(x => x.fill("white"))
-      tool.selectStartX = -1;
-      tool.selectStartY = -1;;
-    }
+  mouseLeave(event){
+    const tool = Tool.current;
 
+    tool.isMouseDown = false;
+    tool.resetSelection();
   }
 
   activate() {
-    Board.current.canvas.addEventListener("mousemove", this.mouseMove);
-    Board.current.canvas.addEventListener("mousemove", this.updateSelect);
+    Board.current.canvas.addEventListener("mousemove", this.updateMousePos);
     Board.current.canvas.addEventListener("mousedown", this.mouseDown);
+    Board.current.canvas.addEventListener("mouseleave", this.mouseLeave);
     Board.current.canvas.addEventListener("mouseup", this.mouseUp);
   }
 
   deactivate() {
-    Board.current.canvas.removeEventListener("mousemove", this.mouseMove);
-    Board.current.canvas.removeEventListener("mousemove", this.updateSelect);
+    Board.current.canvas.removeEventListener("mousemove", this.updateMousePos);
     Board.current.canvas.removeEventListener("mousedown", this.mouseDown);
+    Board.current.canvas.removeEventListener("mouseleave", this.mouseLeave);
     Board.current.canvas.removeEventListener("mouseup", this.mouseUp);
+    this.resetSelection();
   }
 
 }
