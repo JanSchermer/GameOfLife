@@ -25,6 +25,7 @@ export default class Tool{
     const tool = Tool.current;
     const [x, y] = tool.getMousePos(event);
 
+    // Calculate mouse selectios
     if(tool.isMouseDown){
       
       if(tool.selectStartX < 0) tool.selectStartX = x;
@@ -41,9 +42,12 @@ export default class Tool{
 
     }
 
+    // Claer screen
+    Board.current.background.forEach(x => x.fill("white"));
+
     tool.mouseMove(event);
     
-    Board.current.background.forEach(x => x.fill("white"));
+    // Draw selection
     if(tool.selectVisible && tool.selectStartX > 0 && tool.selectStartY > 0){
       
       for(let i = tool.absSelectStartY; i <= tool.absSelectEndY; i++){

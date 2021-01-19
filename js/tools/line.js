@@ -1,9 +1,9 @@
 import Board from '../board.js';
-import Tool from './tool.js'
+import Tool from './tool.js';
 
 export default class Line extends Tool{
 
-  // Options: object:num
+  // Options: object:num, density:num(0-100)
   constructor(options){
     super(options);
     this.selectVisible = true;
@@ -26,11 +26,12 @@ export default class Line extends Tool{
   }
 
   mouseRelease(event) { 
-
-    for(let i = this.absSelectStartY; i <= this.absSelectEndY; i++){
-      Board.current.items[i].fill(this.options.object, this.absSelectStartX, this.absSelectEndX+1);
+    for(let y = this.absSelectStartY; y <= this.absSelectEndY; y++){
+      for(let x = this.absSelectStartX; x <= this.absSelectEndX; x++){
+        if(Math.random() * 100 < this.options.density)
+          Board.current.items[y][x] = this.options.object;
+      }
     }
-
   }
 
 }

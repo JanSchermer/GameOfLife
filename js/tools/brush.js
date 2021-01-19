@@ -1,5 +1,5 @@
 import Board from '../board.js';
-import Tool from './tool.js'
+import Tool from './tool.js';
 
 export default class Brush extends Tool{
 
@@ -9,41 +9,48 @@ export default class Brush extends Tool{
   }
 
   mouseMove(event) {
-    this.draw(event);
+    if(this.isMouseDown)
+      this.draw(event, this.drawObject);
+    else
+      this.draw(event, this.drawBackgroud);
   }
 
   mouseRelease(event){
-    this.draw(event);
+    this.draw(event, this.drawObject);
   }
 
-  draw(event){
+  draw(event, drawMethod){
     const board = Board.current;
     const [x, y] = this.getMousePos(event);
 
-    if(this.isMouseDown || event.type == "mouseup"){
-      
-      if(this.options.radius == 0){
+    if(this.options.radius == 0){
 
-        board.items[y][x] = this.options.object;
+      board.items[y][x] = this.options.object;
 
-      }else{
+    }else{
 
-        for(let i = this.options.radius * -1; i <= this.options.radius; i++){
-          for(let j = this.options.radius * -1; j <= this.options.radius; j++){
-            
-            if(this.options.round && Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2)) > this.options.radius)
-              continue;
-            
-            try{
-              board.items[y + i][x + j] = this.options.object;
-            }catch(e){}
-          }
+      for(let i = this.options.radius * -1; i <= this.options.radius; i++){
+        for(let j = this.options.radius * -1; j <= this.options.radius; j++){
+          
+          if(this.options.round && Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2)) > this.options.radius)
+            continue;
+          
+          try{
+            drawMethod(board, this.options, x + j, y + i)
+          }catch(e){}
         }
-
       }
 
     }
 
+  }
+
+  drawObject(board, options, x, y) {
+    board.items[y][x] = options.object;
+  }
+
+  drawBackgroud(board, options, x, y){
+    board.background[y][x] = "#5193fc";
   }
 
 }
