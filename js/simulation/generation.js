@@ -2,7 +2,7 @@ import Item from "../item";
 
 export default class Generation {
 
-  // Options: 
+  //Options: 
   //ignoreColorReproduction:bool
   //ignoreColorOverpopulation:bool 
   //ignoreColorUnderpopulation:bool 
@@ -12,6 +12,7 @@ export default class Generation {
   //underpopulationDeathChance:num
   //virusDeathChance:num
   //virusSpreadChance:num
+  //virusRecoveryChance:num
 
   //Stats:
   //population[color]
@@ -20,7 +21,8 @@ export default class Generation {
   //deathsOverpopulation[color]
   //deathsUnderpopulation[color]
   //deathsVirus[color]
-  //infections[color]
+  //virusInfections[color]
+  //virusRecoverys[color]
 
   constructor(simulation){
     this.simulation = simulation;
@@ -29,170 +31,212 @@ export default class Generation {
     this.items = Array.from(simulation.board.items);
   }
 
+
   nextGen() {
-    this.stats = {
-       population: {},
-       births: {},
-       deaths: {}, 
-       deathsOverpopulation: {}, 
-       deathsUnderpopulation: {}, 
-       deathsVirus: {},
-       infections: {}
-      }
+    this.newItems = Array.from(this.items);
 
-    items = Array.from(this.items);
+    const calcMethodes = [
+      this.cellPopulation,
+      this.cellOverpopulation,
+      this.cellUnderpopulation,
+      this.cellVirusDeath,
+      this.cellVirusRecovery,
+      this.virusSpread,
+    ]
+    
+    this.initStats();
+    this.loopItems(calcMethodes);
 
-    Item.CELL_COLORS.forEach(color => {
-      this.stats.population[color] = 0;
-      this.stats.births[color] = 0;
-      this.stats.deaths[color] = 0;
-      this.stats.deathsOverpopulation[color] = 0;
-      this.stats.deathsUnderpopulation[color] = 0;
-      this.stats.deathsVirus[color] = 0;
-      this.stats.infections[color] = 0;
-    })
-
-    // Birth and death calculations
-    for(let y = 0; y < items.length; y++){
-      for(let x = 0; x < items[y].length; x++){
-        const item = new Item(this.items[y][x]);
-        const neigbours = this.getNeigbours(x, y, this.items);
-        const neigbourCells = this.getNeigboursCells(neigbours);
-        const neigbourCellColors = this.sortByColor(neigbourCells);
-
-        // Calculate population
-        if(item.type == "cell")
-          this.stats.population[item.color]++;
-
-        // Cell reproduction
-        if(item.type == "air") {
-          if(this.options.ignoreColorReproduction) {
-            if(neigbourCells.length == 3 && Math.random() * 100 < this.options.reproductionChance) {
-              this.items[y][x] = neigbourCells[Math.round(Math.random() * 2)].id;
-            }
-          }else {
-            for(var color in neigbourCellColors){
-              if(neigbourCellColors[color].length == 3 && Math.random() * 100 < this.options.reproductionChance) {
-                this.items[y][x] = neigbourCellColors[color][Math.round(Math.random() * 2)].id;
-              }
-            }
-          }
-          if(this.items[y][x] != 0)
-            this.stats.births[new Item(this.items[y][x]).color]++;
-        }
-
-        if(item.type == "cell"){
-
-          // Cell death by overpopulation
-          if(this.options.ignoreColorOverpopulation){
-            if(neigbourCells.length > 3 && Math.random() * 100 < this.options.overpopulationDeathChance) {
-              items[y][x] = 0;
-              this.stats.deathsOverpopulation[item.color]++;
-            }
-          }else {
-            if(neigbourCellColors[item.color].length > 3 && Math.random() * 100 < this.options.overpopulationDeathChance) {
-              items[y][x] = 0;
-              this.stats.deathsOverpopulation[item.color]++;
-            }
-          }
-
-          // Cell death by underpopulation
-          if(items[y][x] != 0){
-            if(this.options.ignoreColorUnderpopulation){
-              if(neigbourCells.length < 2 && Math.random() * 100 < this.options.underpopulationDeathChance) {
-                items[y][x] = 0;
-                this.stats.deathsUnderpopulation[item.color]++;
-              }
-            }else {
-              if(neigbourCellColors[item.color].length < 2 && Math.random() * 100 < this.options.underpopulationDeathChance) {
-                items[y][x] = 0;
-                this.stats.deathsUnderpopulation[item.color]++;
-              }
-            }
-          }
-
-          // Cell death by virus
-          if(item.infected && items[y][x] != 0) {
-            if(Math.random() * 100 < this.options.virusDeathChance){
-              items[y][x] = 0;
-              this.stats.deathsVirus[item.color]++;
-            }
-          }
-
-          if(this.items[y][x] == 0)
-            this.stats.deaths[item.color]++;
-        }
-      }
-    }
-
-    // Virus spread calculation
-    for(let y = 0; y < items.length; y++){
-      for(let x = 0; x < items[y].length; x++){
-        const item = new Item(this.items[y][x]);
-        
-        if(item.infected){
-          const neigbours = this.getNeigbours(x, y, this.items);
-          const neigbourCells = this.getNeigboursCells(neigbours);
-          
-          for(let yOff = -1; yOff < 2; yOff++){
-            for(let xOff = -1; xOff < 2; xOff++){
-              if(xOff == 0 && yOff == 0)
-                continue;
-      
-              try{
-                const neigbour = new Item(this.items[y + yOff][x + xOff]);
-
-                if(!neigbour.infected){
-                  if(item.type == "cell" && !this.options.ignoreColorSpread && item.color != neigbour.color)
-                    continue;
-                  
-                  if(Math.random() * 100 < this.options.virusSpreadChance){
-                    this.items[y + yOff][x + xOff]++;
-                    this.stats.infections[neigbour.color]++;
-                  }
-                }
-              }catch(e){}
-            }
-          }
-        }
-      }
-    }
+    return this.newItems;
   }
 
-  getNeigbours(x, y, map) {
-    const neigbours = []
 
+  initStats() {
+    this.stats = {
+      population: {},
+      births: {},
+      deaths: {}, 
+      deathsOverpopulation: {}, 
+      deathsUnderpopulation: {}, 
+      deathsVirus: {},
+      virusInfections: {},
+      virusRecoverys: {}
+    };
+
+    Item.CELL_COLORS.forEach(color => {
+      for(key in this.stats)
+        this.stats[key][color] = 0;
+    });
+  }
+
+
+  cellPopulation(item, x, y) {
+    if(item.type != "cell") return;
+    this.stats.population[item.color]++;
+  }
+
+  cellReproduction(item, x, y) {
+    if(item.type != "air") return;
+
+    // Get neighbor cells
+    const neighbors = getNeigbours(x, y)
+    if(!this.options.ignoreColorReproduction)
+      neighbors = this.sortByColor(neighbors)[item.color];
+    
+    // Check reproduction conditions
+    if(neighbors.length != 3) return;
+    if(this.random(100, false) > this.options.reproductionChance) return;
+    
+    // Reproduce random cell and add to statistics
+    this.newItems[y][x] = neighbors[this.random(2, true)].id;
+    this.stats.births[item.color]++;
+  }
+
+
+  cellOverpopulation(item, x, y) {
+    if(item.type != "cell") return;
+
+    // Get neighbor cells
+    const neighbors = getNeigbours(x, y)
+    if(!this.options.ignoreColorOverpopulation)
+      neighbors = this.sortByColor(neighbors)[item.color];
+    
+    // Check death conditions
+    if(neighbors.length < 4) return;
+    if(this.random(100, false) > this.options.overpopulationDeathChance) return;
+    
+    // Kill cell and add to statistics
+    this.newItems[y][x] = 0;
+    this.stats.deathsOverpopulation[item.color]++;
+    this.stats.deaths[item.color]++;
+  }
+
+
+  cellUnderpopulation(item, x, y) {
+    if(item.type != "cell") return;
+
+    // Get neighbor cells
+    const neighbors = getNeigbours(x, y)
+    if(!this.options.ignoreColorUnderpopulation)
+      neighbors = this.sortByColor(neighbors)[item.color];
+    
+    // Check death conditions
+    if(neighbors.length > 1) return;
+    if(this.random(100, false) > this.options.underpopulationDeathChance) return;
+    
+    // Kill cell and add to statistics
+    this.newItems[y][x] = 0;
+    this.stats.deathsUnderpopulation[item.color]++;
+    this.stats.deaths[item.color]++;
+  }
+
+
+  cellVirusDeath(item, x, y) {
+    if(item.type != "cell" || !item.infected) return;
+
+    // Check death conditions
+    if(this.random(100, false) > this.options.virusDeathChance) return;
+
+    // Kill cell and add to statistics
+    this.newItems[y][x] = 0;
+    this.stats.deathsVirus[item.color]++;
+    this.stats.deaths[item.color]++;
+  }
+
+  
+  cellVirusRecovery(item, x, y) {
+    if(item.type != "cell" || !item.infected || this.newItems[y][x] != item.id) return;
+
+    // Check recovery conditions
+    if(this.random(100, false) > this.options.virusRecoveryChance) return;
+
+    // Recover cell and add to statistics
+    this.newItems[y][x] = --item.id;
+    this.stats.virusRecoverys[item.color]++;
+  }
+
+  
+  virusSpread(item, x, y){
+    if(!item.infected) return;
+    
+    // Loop neigbors and check with infection proberbility
     for(let yOff = -1; yOff < 2; yOff++){
       for(let xOff = -1; xOff < 2; xOff++){
         if(xOff == 0 && yOff == 0)
           continue;
 
-        try{
-          const item = new Item(map[y + yOff][x + xOff]);
+        try {
+          const neigbor = this.items[y + yOff][x + xOff];
+          neigbor = new Item(neigbor);
 
-          neigbours.push(item);
+          // Check spreading conditions
+          if(neigbor.type != "cell") return;
+          if(!neigbor.infected) return;
+          if(this.random(100, false) > this.options.virusSpreadChance) return;
+
+          // Spread virus and add to statistics
+          this.stats.virusInfections[neigbor.color]++;
         }catch(e){}
+        
+      }
+    }
+  }
+
+
+  loopItems(methodes) {
+    methodes.forEach(methode => {
+
+      for(let y = 0; y < this.items.length; y++){
+        for(let x = 0; x < this.items[y].length; x++){
+          const item = new Item(this.items[y][x]);
+          methode(item, x, y);
+        }
+      }
+
+    });
+  }
+
+
+  // Get neighbor cells
+  getNeigbours(x, y) {
+    const neigbours = []
+
+    for(let yOff = -1; yOff < 2; yOff++){
+      for(let xOff = -1; xOff < 2; xOff++){
+        if(xOff == 0 && yOff == 0) continue;
+
+        try{
+          const item = new Item(this.items[y + yOff][x + xOff]);
+          if(item.type == "cell") neigbours.push(item);
+        }catch(e){}
+
       }
     }
 
     return neigbours;
   }
 
-  getNeigboursCells(neigbours) {
-    return neigbours.filter(item => item.type == "cell");
-  }
 
+  // Sort cells by color
   sortByColor(items) {
     const result = {};
 
+    Item.CELL_COLORS.forEach(color => {
+      result[color] = [];
+    });
+    
     items.forEach(item => {
-      if(!item.color in result)
-        result[item.color] = [item];
-      else
-        result[item.color].push(item);
+      result[item.color].push(item);
     });
 
     return result;
+  }
+
+
+  // Get random num
+  random(max , rounded) {
+    const num = Math.random() * max;
+    return rounded ? Math.round(num) : num;
   }
 
 }
