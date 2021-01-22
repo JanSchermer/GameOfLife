@@ -20,7 +20,7 @@ export default class Fill extends Tool {
     const board = Board.current;
 
     for(let y = 0; y < board.background.length; y++){
-      for(let x = 0; x < board.background[0].length; x++){
+      for(let x = 0; x < board.background[y].length; x++){
         if(board.background[y][x] != "white")
           this.drawObject(board, this.options, x, y);
       }
