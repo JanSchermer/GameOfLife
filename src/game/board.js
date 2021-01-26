@@ -1,26 +1,29 @@
 export default class Board{
   static current;
 
-  constructor(height, width, resolution, items){
-    Board.current = this;
+  constructor(height, width, resolution, items, options){
     this.active = true;
-
     this.height = height;
     this.width = width;
     this.resolution = resolution;
 
     this.createBoard();
     if(items != null) this.items = items;
+    
+  }
 
-    this.canvas = document.getElementById('canvas');
+  append(canvas) {
+    this.canvas = document.getElementById(canvasId);
     this.context = canvas.getContext("2d");
 
     this.canvas.height = height;
     this.canvas.width = width;
 
-    canvas.addEventListener("click", this.click);
-
     this.draw();
+  }
+
+  makeDefault() {
+    Board.current = this;
   }
 
   createBoard() {

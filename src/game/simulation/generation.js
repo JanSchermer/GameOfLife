@@ -26,8 +26,8 @@ export default class Generation {
 
   constructor(simulation){
     this.simulation = simulation;
-    this.options = simulation.options;
     this.board = simulation.board;
+    this.options = this.board.options;
     this.items = Array.from(simulation.board.items);
   }
 
@@ -41,7 +41,7 @@ export default class Generation {
       this.cellUnderpopulation,
       this.cellVirusDeath,
       this.cellVirusRecovery,
-      this.virusSpread,
+      this.virusSpread
     ]
     
     this.initStats();

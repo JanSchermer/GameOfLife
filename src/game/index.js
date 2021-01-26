@@ -9,8 +9,8 @@ import Fill from "./tools/fill.js";
 
 function main(){
 
-  const board = new Board(900, 900, 20, null);
-  const editor = new Editor();
+  const board = new Board(900, 900, 20, "canvas", null);
+  board.makeDefault();
 
   //new Brush({radius: 1, object: 1, round: true}).activate();
   //new Line({object: 1, density:100});
