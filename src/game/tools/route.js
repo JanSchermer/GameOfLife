@@ -8,12 +8,12 @@ export default class Route extends Tool {
     super(options);
   }
 
-  mouseMove(event) {
+  mouseMove() {
     if(this.isMouseDown)
       this.draw(this.drawBackgroud);
   }
 
-  mouseRelease(event){
+  mouseRelease(){
     this.draw(this.drawObject)
   }
 
@@ -49,7 +49,7 @@ export default class Route extends Tool {
   }
 
   drawBackgroud(board, options, x, y){
-    board.background[y][x] = "#5193fc";
+    board.background[y][x] = Tool.selectColor;
   }
 
 }

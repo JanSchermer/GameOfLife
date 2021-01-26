@@ -6,7 +6,6 @@ export default class Line extends Tool{
   // Options: object:num, density:num(0-100)
   constructor(options){
     super(options);
-    this.selectVisible = true;
   }
 
   mouseMove(event) {
@@ -22,16 +21,33 @@ export default class Line extends Tool{
       this.absSelectStartX = this.selectStartX;
       this.absSelectEndX = this.selectStartX;
     }
+    for(let y = this.absSelectStartY; y <= this.absSelectEndY; y++){
+      for(let x = this.absSelectStartX; x <= this.absSelectEndX; x++){
+        this.drawBackgroud(Board.current, this.options, x, y);
+      }
+    }
 
   }
 
-  mouseRelease(event) { 
+  mouseRelease() { 
     for(let y = this.absSelectStartY; y <= this.absSelectEndY; y++){
       for(let x = this.absSelectStartX; x <= this.absSelectEndX; x++){
-        if(Math.random() * 100 < this.options.density)
-          Board.current.items[y][x] = this.options.object;
+        this.drawObject(Board.current, this.options, x, y);
       }
     }
+  }
+
+  drawObject(board, options, x, y) {
+    if(Math.random() * 100 < options.density)
+      try{
+        board.items[y][x] = options.object;
+      }catch(e){return;}
+  }
+
+  drawBackgroud(board, options, x, y){
+    try{
+      board.background[y][x] = Tool.selectColor;
+    }catch(e){return;}
   }
 
 }

@@ -10,7 +10,7 @@
           <v-layout column>
             <h2>Tool Selection</h2>
             <v-radio-group v-model="tool" class="mt-1" @change="update">
-              <v-radio label="Brush" value="brush" on-icon="mdi-pencil" color="deep-purple" tooltip="Paint what your heart desires"></v-radio>
+              <v-radio label="Brush" value="brush" on-icon="mdi-pencil" color="deep-purple"></v-radio>
               <v-radio label="Fill" value="fill" on-icon="mdi-format-color-fill" color="deep-purple"></v-radio>
               <v-radio label="Line" value="line" on-icon="mdi-arrow-left-right" color="deep-purple"></v-radio>
               <v-radio label="Rectangle" value="rect" on-icon="mdi-rectangle-outline" color="deep-purple"></v-radio>
@@ -97,8 +97,6 @@
                 v-if="item != 'air'" 
                 color="deep-purple" 
                 class="mt-0 pt-0"
-                v-bind="attrs"
-                v-on="on"
                 @change="update"></v-switch>
             </v-slide-x-transition>
           </v-layout>
@@ -110,13 +108,66 @@
 </template>
 
 <script>
+import Brush from "../game/tools/brush"
+import Fill from "../game/tools/fill"
+import Line from "../game/tools/line"
+import Rectangle from "../game/tools/rectangle"
+import Route from "../game/tools/route"
+
 export default {
   name: "EditorTools",
 
   methods: {
     update() {
 
-      console.log("ud");
+      var item = 0;
+
+      switch(this.item) {
+
+        case "cell":
+          item = parseInt(this.itemColor);
+          break;
+        
+        case "block":
+          item = 11;
+          break;
+
+      }
+
+      if(item != 0 && this.itemInfected)
+        item++;
+
+      const options = {
+        radius: this.toolSize,
+        round: this.toolRound,
+        density: this.toolDensity,
+        filled: this.toolFill,
+        object: item,
+      }
+
+      var tool;
+
+      switch(this.tool){
+
+        case "brush":
+          tool = new Brush(options);
+          break;
+        
+        case "fill":
+          tool = new Fill(options);
+          break;
+
+        case "line":
+          tool = new Line(options);
+          break;
+        
+        case "rect":
+          tool = this.toolRotated ? new Route(options) : new Rectangle(options);
+          break;
+
+      }
+
+      tool.activate();
 
     }
   },

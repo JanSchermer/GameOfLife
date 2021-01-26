@@ -16,7 +16,7 @@ export default class Fill extends Tool {
       this.fill(x, y, board.items[y][x]);
   }
 
-  mouseRelease(event){
+  mouseRelease(){
     const board = Board.current;
 
     for(let y = 0; y < board.background.length; y++){
@@ -35,7 +35,7 @@ export default class Fill extends Tool {
         return;
     }catch (e) {return;}
     
-    board.background[y][x] = "#5193fc";
+    board.background[y][x] = Tool.selectColor;
 
     this.fill(x+1, y, target);
     this.fill(x-1, y, target);

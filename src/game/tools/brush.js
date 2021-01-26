@@ -37,7 +37,7 @@ export default class Brush extends Tool{
           
           try{
             drawMethod(board, this.options, x + j, y + i)
-          }catch(e){}
+          }catch(e){continue;}
         }
       }
 
@@ -50,7 +50,7 @@ export default class Brush extends Tool{
   }
 
   drawBackgroud(board, options, x, y){
-    board.background[y][x] = "#5193fc";
+    board.background[y][x] = Tool.selectColor;
   }
 
 }

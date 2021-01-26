@@ -1,6 +1,7 @@
 import Board from '../board.js';
 
 export default class Tool{
+  static selectColor = "#a071f5";
   static current;
 
   constructor(options){
@@ -18,8 +19,8 @@ export default class Tool{
   }
 
   // Abstract methodes for tools
-  mouseMove(event) {}
-  mouseRelease(event) {}
+  //mouseMove() {}
+  //mouseRelease() {}
 
   updateMousePos(event){
     const tool = Tool.current;
@@ -46,18 +47,9 @@ export default class Tool{
     Board.current.background.forEach(x => x.fill("white"));
 
     tool.mouseMove(event);
-    
-    // Draw selection
-    if(tool.selectVisible && tool.selectStartX > 0 && tool.selectStartY > 0){
-      
-      for(let i = tool.absSelectStartY; i <= tool.absSelectEndY; i++){
-        Board.current.background[i].fill("#5193fc", tool.absSelectStartX, tool.absSelectEndX+1);
-      }
-
-    }
 
     if(!tool.isMouseDown) {
-      Board.current.background[y][x] = "#99c0ff";
+      Board.current.background[y][x] = "#7d47de";
     }
 
   }
@@ -65,7 +57,7 @@ export default class Tool{
   resetSelection(){
     Board.current.background.forEach(x => x.fill("white"))
     this.selectStartX = -1;
-    this.selectStartY = -1;;
+    this.selectStartY = -1;
   }
 
   getMousePos(event){
@@ -78,7 +70,7 @@ export default class Tool{
     return [x, y];
   }
 
-  mouseDown(event){
+  mouseDown(){
     const tool = Tool.current;
 
     tool.isMouseDown = true;
@@ -92,7 +84,7 @@ export default class Tool{
     tool.resetSelection();
   }
 
-  mouseLeave(event){
+  mouseLeave(){
     const tool = Tool.current;
 
     tool.isMouseDown = false;
@@ -100,8 +92,7 @@ export default class Tool{
   }
 
   activate() {
-    try{Tool.current.deactivate();}
-    catch(e){};
+    if(Tool.current != null) Tool.current.deactivate();
     Tool.current = this;
 
     Board.current.canvas.addEventListener("mousemove", this.updateMousePos);
