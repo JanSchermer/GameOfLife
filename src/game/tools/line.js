@@ -33,6 +33,7 @@ export default class Line extends Tool{
     for(let y = this.absSelectStartY; y <= this.absSelectEndY; y++){
       for(let x = this.absSelectStartX; x <= this.absSelectEndX; x++){
         this.drawObject(Board.current, this.options, x, y);
+        this.drawBackgroud(Board.current, this.options, x, y);
       }
     }
   }

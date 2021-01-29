@@ -1,4 +1,5 @@
 import Board from '../board.js';
+import Saves from "../saves.js";
 
 export default class Tool{
   static selectColor = "#a071f5";
@@ -82,6 +83,8 @@ export default class Tool{
     tool.isMouseDown = false;
     tool.mouseRelease(event);
     tool.resetSelection();
+
+    Saves.save("Auto Save");
   }
 
   mouseLeave(){

@@ -25,7 +25,10 @@ import TimeControl from "./TimeControl"
 import GameSettings from "./GameSettings"
 
 import Board from "../game/board"
-import Brush from "../game/tools/brush"
+import Saves from "../game/saves"
+import TimerManager from "../game/simulation/time"
+import Tool from "../game/tools/tool"
+import Simulation from "../game/simulation/simulation"
 
 export default {
   name: 'SimulationTable',
@@ -39,10 +42,26 @@ export default {
   data: () => ({
   }),
 
-  mounted() {
-    const board = new Board(900, 900, 20, null, {showGrid: true, })
+  async mounted() {
+    var board = Board.current;
+
+    if(board == null) {
+      const saves = await Saves.getSaves();
+
+      if(saves.includes("Auto Save")) {
+        const data = await Saves.load("Auto Save");
+        board = new Board(data.height, data.width, data.resolution, data.items, data.options);
+      } else 
+        board = new Board(900, 900, 20, null, null);
+    }
     board.append("canvas");
-    new Brush({radius: 1, round: true, object: 1}).activate();
+    new Simulation();
+  },
+
+  beforeUnmount() {
+    Board.current.active = false;
+    Tool.current.deactivate();
+    TimerManager.current.setDirection("pause");
   }
 }
 </script> 

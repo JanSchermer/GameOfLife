@@ -37,23 +37,28 @@
 </template>
 
 <script>
+import TimeManager from "../game/simulation/time";
 export default {
   name: "TimeControl",
 
   methods: {
     update() {
-
-      console.log("ud");
-
+      TimeManager.current.setSpeed(this.timeSpeed);
     },
+
     setDirection(direction){
       this.timeDirection = direction;
+      TimeManager.current.setDirection(direction);
     }
   },
 
   data: () => ({
     timeDirection: "pause",
     timeSpeed: 1,
-  })
+  }),
+
+  mounted() {
+    new TimeManager(this.setDirection);
+  }
 }
 </script>

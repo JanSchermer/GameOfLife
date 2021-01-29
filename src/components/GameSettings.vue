@@ -8,7 +8,8 @@
           
         <v-row>
           <v-layout column>
-            <v-switch label="Show Grid" v-model="showGrid" prepend-icon="mdi-grid" color="deep-purple" @change="update" class="mt-1"></v-switch>
+            <v-switch label="Show Grid" v-model="showGrid" :prepend-icon="showGrid ? 'mdi-grid' : 'mdi-checkbox-blank-outline'" color="deep-purple" @change="update" class="mt-1"></v-switch>
+            <v-switch label="Prevent Freez" v-model="preventFreez" prepend-icon="mdi-snowflake-alert" color="deep-purple" @change="update" class="mt-0"></v-switch>
           </v-layout>
         </v-row>
 
@@ -29,7 +30,7 @@
 
         <v-row>
           <v-layout column>
-            <h2>Ignore Color For</h2>
+            <h2>Ignore Color For:</h2>
             <v-switch label="Reproduction" v-model="icReproduction" prepend-icon="mdi-shape-circle-plus" color="deep-purple" @change="update"></v-switch>
             <v-switch label="Underpopulation" v-model="icUnderpopulation" prepend-icon="mdi-circle-small" color="deep-purple" @change="update" class="mt-0"></v-switch>
             <v-switch label="Overpopulation" v-model="icOverpopulation" prepend-icon="mdi-dots-triangle" color="deep-purple" @change="update" class="mt-0"></v-switch>
@@ -39,7 +40,7 @@
 
         <v-row class="mt-4">
           <v-layout column>
-            <h2>Death Chance By</h2>
+            <h2>Death Chance By:</h2>
             <v-slider 
                 label="Overpopulation"
                 v-model="chanceDeathOver"  
@@ -75,7 +76,7 @@
 
         <v-row>
           <v-layout column>
-            <h2>Probability For Virus</h2>
+            <h2>Probability For Virus:</h2>
             <v-slider 
                 label="Spread"
                 v-model="chanceSpread"  
@@ -105,29 +106,71 @@
 </template>
 
 <script>
+import Board from "../game/board"
+import Saves from "../game/saves"
+
 export default {
   name: "GameSettings",
 
   methods: {
     update() {
 
-      console.log("ud");
+      const options = {
+        showGrid: this.showGrid,
+        preventFreez: this.preventFreez,
+        ignoreColorReproduction: this.icReproduction,
+        ignoreColorOverpopulation: this.icOverpopulation,
+        ignoreColorUnderpopulation: this.icUnderpopulation,
+        ignoreColorSpread: this.icSpread,
+        reproductionChance: this.chanceReproduction,
+        overpopulationDeathChance: this.chanceDeathOver,
+        underpopulationDeathChance: this.chanceDeathUnder,
+        virusDeathChance: this.chanceDeathVirus,
+        virusSpreadChance: this.chanceSpread,
+        virusRecoveryChance: this.chanceRecovery,
+      }
 
+      Board.current.options = options;
+
+      Saves.save("Auto Save");
     },
+
+    loadData() {
+      const options = Board.current.options;
+
+      this.showGrid = options.showGrid;
+      this.preventFreez = options.preventFreez;
+      this.icReproduction = options.ignoreColorReproduction;
+      this.icOverpopulation = options.ignoreColorOverpopulation;
+      this.icUnderpopulation = options.ignoreColorUnderpopulation;
+      this.icSpread = options.ignoreColorSpread;
+      this.chanceReproduction = options.reproductionChance;
+      this.chanceDeathOver = options.overpopulationDeathChance;
+      this.chanceDeathUnder = options.underpopulationDeathChance;
+      this.chanceDeathVirus = options.virusDeathChance;
+      this.chanceSpread = options.virusSpreadChance;
+      this.chanceRecovery = options.virusRecoveryChance;
+
+    }
+  },
+  
+  mounted() {
+    setTimeout(this.loadData, 50);
   },
 
   data: () => ({
-    showGrid: true,
+    showGrid: false,
+    preventFreez: false,
     icReproduction: false,
     icOverpopulation: false,
     icUnderpopulation: false,
     icSpread: false,
-    chanceSpread: 50,
-    chanceRecovery: 50,
-    chanceReproduction: 50,
-    chanceDeathVirus: 50,
-    chanceDeathOver: 50,
-    chanceDeathUnder: 50,
+    chanceSpread: 0,
+    chanceRecovery: 0,
+    chanceReproduction: 0,
+    chanceDeathVirus: 0,
+    chanceDeathOver: 0,
+    chanceDeathUnder: 0,
   })
 }
 </script>

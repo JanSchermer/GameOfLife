@@ -9,14 +9,15 @@ export default class Brush extends Tool{
   }
 
   mouseMove(event) {
+    this.draw(event, this.drawBackgroud);
+
     if(this.isMouseDown)
       this.draw(event, this.drawObject);
-    else
-      this.draw(event, this.drawBackgroud);
   }
 
   mouseRelease(event){
     this.draw(event, this.drawObject);
+    this.draw(event, this.drawBackgroud);
   }
 
   draw(event, drawMethod){
@@ -25,7 +26,9 @@ export default class Brush extends Tool{
 
     if(this.options.radius == 0){
 
-      board.items[y][x] = this.options.object;
+      try {
+        drawMethod(board, this.options, x, y);
+      }catch(e){return;}
 
     }else{
 

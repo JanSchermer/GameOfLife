@@ -1,6 +1,6 @@
 export default class Item {
 
-  static CELL_COLORS = ["red", "green", "yellow"];
+  static CELL_COLORS = ["green", "blue", "orange"];
   
   // 0 : Air
 
@@ -41,7 +41,7 @@ export default class Item {
         this.color = "blue";
       
       else if(id < 7)
-        this.color = "yellow";
+        this.color = "orange";
       
       this.infected = id % 2 == 0;
     }

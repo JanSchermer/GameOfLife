@@ -24,24 +24,26 @@ export default class Generation {
   //virusInfections[color]
   //virusRecoverys[color]
 
-  constructor(simulation){
+  constructor(simulation, items){
     this.simulation = simulation;
     this.board = simulation.board;
     this.options = this.board.options;
-    this.items = Array.from(simulation.board.items);
+    this.items = items == null ? this.deepCopy(this.board.items) : items;
   }
 
 
   nextGen() {
-    this.newItems = Array.from(this.items);
+    this.newItems = this.deepCopy(this.items);
 
     const calcMethodes = [
       this.cellPopulation,
-      this.cellOverpopulation,
+      this.cellReproduction,
       this.cellUnderpopulation,
+      this.cellOverpopulation,
+      this.virusSpread,
       this.cellVirusDeath,
       this.cellVirusRecovery,
-      this.virusSpread
+      this.preventFreez,
     ]
     
     this.initStats();
@@ -50,6 +52,9 @@ export default class Generation {
     return this.newItems;
   }
 
+  deepCopy(array){
+    return JSON.parse(JSON.stringify(array));
+  }
 
   initStats() {
     this.stats = {
@@ -64,99 +69,107 @@ export default class Generation {
     };
 
     Item.CELL_COLORS.forEach(color => {
-      for(key in this.stats)
+      for(var key in this.stats)
         this.stats[key][color] = 0;
     });
   }
 
 
-  cellPopulation(item, x, y) {
+  cellPopulation(self, item) {
     if(item.type != "cell") return;
-    this.stats.population[item.color]++;
+    self.stats.population[item.color]++;
   }
 
-  cellReproduction(item, x, y) {
+  cellReproduction(self, item, x, y) {
     if(item.type != "air") return;
 
     // Get neighbor cells
-    const neighbors = getNeigbours(x, y)
-    if(!this.options.ignoreColorReproduction)
-      neighbors = this.sortByColor(neighbors)[item.color];
+    var neighbors = self.getNeigbours(x, y)
+    if(!self.options.ignoreColorReproduction)
+      neighbors = self.sortByColor(neighbors);
+
+    else 
+      neighbors = {"all": neighbors};
     
-    // Check reproduction conditions
-    if(neighbors.length != 3) return;
-    if(this.random(100, false) > this.options.reproductionChance) return;
-    
-    // Reproduce random cell and add to statistics
-    this.newItems[y][x] = neighbors[this.random(2, true)].id;
-    this.stats.births[item.color]++;
+    for(var key in neighbors) {
+      var cells = neighbors[key];
+      if(cells.length > 0)
+        console.log(cells);
+      // Check reproduction conditions
+      if(cells.length != 3) continue;
+      if(self.random(100, false) > self.options.reproductionChance) continue;
+      
+      self.newItems[y][x] = cells[self.random(2, true)].id;
+      self.stats.births[item.color]++;
+    }
   }
 
 
-  cellOverpopulation(item, x, y) {
+  cellOverpopulation(self, item, x, y) {
     if(item.type != "cell") return;
-
+    
     // Get neighbor cells
-    const neighbors = getNeigbours(x, y)
-    if(!this.options.ignoreColorOverpopulation)
-      neighbors = this.sortByColor(neighbors)[item.color];
+    var neighbors = self.getNeigbours(x, y)
+    if(!self.options.ignoreColorOverpopulation)
+      neighbors = self.sortByColor(neighbors)[item.color];
     
     // Check death conditions
     if(neighbors.length < 4) return;
-    if(this.random(100, false) > this.options.overpopulationDeathChance) return;
+    if(self.random(100, false) > self.options.overpopulationDeathChance) return;
     
     // Kill cell and add to statistics
-    this.newItems[y][x] = 0;
-    this.stats.deathsOverpopulation[item.color]++;
-    this.stats.deaths[item.color]++;
+    self.newItems[y][x] = 0;
+    self.stats.deathsOverpopulation[item.color]++;
+    self.stats.deaths[item.color]++;
   }
 
 
-  cellUnderpopulation(item, x, y) {
+  cellUnderpopulation(self, item, x, y) {
     if(item.type != "cell") return;
-
+    
     // Get neighbor cells
-    const neighbors = getNeigbours(x, y)
-    if(!this.options.ignoreColorUnderpopulation)
-      neighbors = this.sortByColor(neighbors)[item.color];
+    var neighbors = self.getNeigbours(x, y)
+
+    if(!self.options.ignoreColorUnderpopulation)
+      neighbors = self.sortByColor(neighbors)[item.color];
     
     // Check death conditions
     if(neighbors.length > 1) return;
-    if(this.random(100, false) > this.options.underpopulationDeathChance) return;
+    if(self.random(100, false) > self.options.underpopulationDeathChance) return;
     
     // Kill cell and add to statistics
-    this.newItems[y][x] = 0;
-    this.stats.deathsUnderpopulation[item.color]++;
-    this.stats.deaths[item.color]++;
+    self.newItems[y][x] = 0;
+    self.stats.deathsUnderpopulation[item.color]++;
+    self.stats.deaths[item.color]++;
   }
 
 
-  cellVirusDeath(item, x, y) {
+  cellVirusDeath(self, item, x, y) {
     if(item.type != "cell" || !item.infected) return;
-
+    
     // Check death conditions
-    if(this.random(100, false) > this.options.virusDeathChance) return;
+    if(self.random(100, false) > self.options.virusDeathChance) return;
 
     // Kill cell and add to statistics
-    this.newItems[y][x] = 0;
-    this.stats.deathsVirus[item.color]++;
-    this.stats.deaths[item.color]++;
+    self.newItems[y][x] = 0;
+    self.stats.deathsVirus[item.color]++;
+    self.stats.deaths[item.color]++;
   }
 
   
-  cellVirusRecovery(item, x, y) {
-    if(item.type != "cell" || !item.infected || this.newItems[y][x] != item.id) return;
+  cellVirusRecovery(self, item, x, y) {
+    if(item.type != "cell" || !item.infected || self.newItems[y][x] != item.id) return;
 
     // Check recovery conditions
-    if(this.random(100, false) > this.options.virusRecoveryChance) return;
+    if(self.random(100, false) > self.options.virusRecoveryChance) return;
 
     // Recover cell and add to statistics
-    this.newItems[y][x] = --item.id;
-    this.stats.virusRecoverys[item.color]++;
+    self.newItems[y][x] = --item.id;
+    self.stats.virusRecoverys[item.color]++;
   }
 
   
-  virusSpread(item, x, y){
+  virusSpread(self, item, x, y){
     if(!item.infected) return;
     
     // Loop neigbors and check with infection proberbility
@@ -166,30 +179,53 @@ export default class Generation {
           continue;
 
         try {
-          const neigbor = this.items[y + yOff][x + xOff];
+          var neigbor = self.newItems[y + yOff][x + xOff];
           neigbor = new Item(neigbor);
 
           // Check spreading conditions
-          if(neigbor.type != "cell") return;
-          if(!neigbor.infected) return;
-          if(this.random(100, false) > this.options.virusSpreadChance) return;
-
+          if(neigbor.type != "cell") continue;
+          if(!self.options.ignoreColorSpread && neigbor.color != item.color) continue;
+          if(neigbor.infected) continue;
+          if(self.random(100, false) > self.options.virusSpreadChance) continue;
+          
           // Spread virus and add to statistics
-          this.stats.virusInfections[neigbor.color]++;
-        }catch(e){}
+          self.newItems[y + yOff][x + xOff]++;
+          self.stats.virusInfections[neigbor.color]++;
+        }catch(e){continue;}
         
       }
     }
   }
 
 
+  preventFreez(self, item, x, y) {
+    if(!self.options.preventFreez) return;
+    if(item.type != "cell") return;
+
+    // Get neighbor cells
+    var neighbors = self.getNeigbours(x, y)
+    if(!self.options.ignoreColorReproduction)
+      neighbors = self.sortByColor(neighbors)[item.color];
+    
+    // Check freez conditions
+    if(neighbors.length < 2) return;
+    if(self.random(100, false) > neighbors.length) return;
+    
+    // Unfreez cell
+    self.newItems[y][x] = 0;
+    try {
+      self.newItems[y + self.random(2, true) -1][x + self.random(2, true) -1] = item.id;
+    }catch(e) {return;}
+    
+  }
+
   loopItems(methodes) {
     methodes.forEach(methode => {
-
+      console.log(methode);
       for(let y = 0; y < this.items.length; y++){
         for(let x = 0; x < this.items[y].length; x++){
           const item = new Item(this.items[y][x]);
-          methode(item, x, y);
+          methode(this, item, x, y);
         }
       }
 
@@ -201,18 +237,24 @@ export default class Generation {
   getNeigbours(x, y) {
     const neigbours = []
 
+    let c = 0;
     for(let yOff = -1; yOff < 2; yOff++){
       for(let xOff = -1; xOff < 2; xOff++){
-        if(xOff == 0 && yOff == 0) continue;
+        if(xOff == 0 && yOff == 0) console.log();
+        else if(x + xOff < 0 || x + xOff >= this.items.length || y + yOff < 0 || y + yOff >= this.items.length) console.log();
+        else {
+          const item = new Item(this.items[(y + yOff)][(x + xOff)]);
+          if(item.type == "cell") {
+            neigbours.push(item)
+            c++;
+          }
 
-        try{
-          const item = new Item(this.items[y + yOff][x + xOff]);
-          if(item.type == "cell") neigbours.push(item);
-        }catch(e){}
+        }
 
       }
     }
-
+    if(c > 0)
+      console.log(x, y, c);
     return neigbours;
   }
 
