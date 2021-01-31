@@ -21,9 +21,9 @@
             </v-row>
             <v-slider 
                 label="Speed"
-                v-model="timeSpeed"  controll or control
+                v-model="timeSpeed"
                 min="1"
-                max="10"
+                max="50"
                 thumb-label
                 color="deep-purple" 
                 track-color="grey"

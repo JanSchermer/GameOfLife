@@ -80,11 +80,10 @@ export default class Generation {
     self.stats.population[item.color]++;
   }
 
-  cellReproduction(self, item, x, y) {
+  cellReproduction(self, item, x, y, neighbors) {
     if(item.type != "air") return;
 
-    // Get neighbor cells
-    var neighbors = self.getNeigbours(x, y)
+    // Filter colors
     if(!self.options.ignoreColorReproduction)
       neighbors = self.sortByColor(neighbors);
 
@@ -93,8 +92,6 @@ export default class Generation {
     
     for(var key in neighbors) {
       var cells = neighbors[key];
-      if(cells.length > 0)
-        console.log(cells);
       // Check reproduction conditions
       if(cells.length != 3) continue;
       if(self.random(100, false) > self.options.reproductionChance) continue;
@@ -105,11 +102,10 @@ export default class Generation {
   }
 
 
-  cellOverpopulation(self, item, x, y) {
+  cellOverpopulation(self, item, x, y, neighbors) {
     if(item.type != "cell") return;
     
-    // Get neighbor cells
-    var neighbors = self.getNeigbours(x, y)
+    // Filter colors
     if(!self.options.ignoreColorOverpopulation)
       neighbors = self.sortByColor(neighbors)[item.color];
     
@@ -124,12 +120,10 @@ export default class Generation {
   }
 
 
-  cellUnderpopulation(self, item, x, y) {
+  cellUnderpopulation(self, item, x, y, neighbors) {
     if(item.type != "cell") return;
     
-    // Get neighbor cells
-    var neighbors = self.getNeigbours(x, y)
-
+    // Filter colors
     if(!self.options.ignoreColorUnderpopulation)
       neighbors = self.sortByColor(neighbors)[item.color];
     
@@ -198,12 +192,11 @@ export default class Generation {
   }
 
 
-  preventFreez(self, item, x, y) {
+  preventFreez(self, item, x, y, neighbors) {
     if(!self.options.preventFreez) return;
     if(item.type != "cell") return;
 
     // Get neighbor cells
-    var neighbors = self.getNeigbours(x, y)
     if(!self.options.ignoreColorReproduction)
       neighbors = self.sortByColor(neighbors)[item.color];
     
@@ -212,20 +205,31 @@ export default class Generation {
     if(self.random(100, false) > neighbors.length) return;
     
     // Unfreez cell
-    self.newItems[y][x] = 0;
-    try {
-      self.newItems[y + self.random(2, true) -1][x + self.random(2, true) -1] = item.id;
-    }catch(e) {return;}
+    var tries = 0;
+    var success;
+    do {
+      const newY = y + self.random(2, true) -1;
+      const newX = x + self.random(2, true) -1;
+      try {
+        success = self.newItems[newY][newX] == 0;
+      }catch(e) {
+        success = false;
+      }
+      if (success) {
+        self.newItems[newY][newX] = item.id;
+        self.newItems[y][x] = 0;
+      }
+    }while(!success && tries++ < 5); 
     
   }
 
   loopItems(methodes) {
     methodes.forEach(methode => {
-      console.log(methode);
       for(let y = 0; y < this.items.length; y++){
         for(let x = 0; x < this.items[y].length; x++){
           const item = new Item(this.items[y][x]);
-          methode(this, item, x, y);
+          const neighbors = this.getNeigbours(x, y)
+          methode(this, item, x, y, neighbors);
         }
       }
 
@@ -237,24 +241,17 @@ export default class Generation {
   getNeigbours(x, y) {
     const neigbours = []
 
-    let c = 0;
     for(let yOff = -1; yOff < 2; yOff++){
       for(let xOff = -1; xOff < 2; xOff++){
-        if(xOff == 0 && yOff == 0) console.log();
-        else if(x + xOff < 0 || x + xOff >= this.items.length || y + yOff < 0 || y + yOff >= this.items.length) console.log();
-        else {
+        if (!(xOff == 0 && yOff == 0) &&
+           !(x + xOff < 0 || x + xOff >= this.items.length || y + yOff < 0 || y + yOff >= this.items.length) ) {
           const item = new Item(this.items[(y + yOff)][(x + xOff)]);
-          if(item.type == "cell") {
-            neigbours.push(item)
-            c++;
-          }
+          if(item.type == "cell") neigbours.push(item);
 
         }
 
       }
     }
-    if(c > 0)
-      console.log(x, y, c);
     return neigbours;
   }
 

@@ -12,8 +12,9 @@ export default class TimeManager {
   }
 
   async step() {
+    const delta = Date.now();
     const timer = TimeManager.current;
-    if(timer.direction == "pause") return;
+    if(timer.direction == "pause") return;  
     
     var gen = Simulation.current.currentGen;
 
@@ -26,7 +27,12 @@ export default class TimeManager {
     else gen--;
 
     await Simulation.current.setGeneration(gen);
-    setTimeout(timer.step, 1000 / timer.speed);
+    timer.printGeneration(gen);
+    timer.timer = setTimeout(timer.step, 1000 / timer.speed - (Date.now() - delta) );
+  }
+
+  printGeneration(gen) {
+    document.getElementById("generation").innerHTML = 'Generation: ' + gen;
   }
 
   setDirection(dir) {
