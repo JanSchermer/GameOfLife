@@ -1,7 +1,6 @@
 import Board from '../board.js';
 
 import Generation from './generation.js';
-import Analytics from "./analitics.js";
 import Saves from "../saves.js";
 
 export default class Simulation {
@@ -12,8 +11,6 @@ export default class Simulation {
 
   constructor(){
     this.board = Board.current;
-    this.analytics = new Analytics();
-    this.generations.push(new Generation(this))
     Simulation.current = this;
   }
 

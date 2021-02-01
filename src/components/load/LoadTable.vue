@@ -16,7 +16,10 @@
 import BoardCanvas from './BoardCanvas'
 import Board from '../../game/board'
 import Saves from '../../game/saves'
+import Simulation from '../../game/simulation/simulation'
+import TimerManager from '../../game/simulation/time'
 import exampleBoards from './examples'
+import Tool from "../../game/tools/tool"
 
 export default {
   name: "LoadTable",
@@ -68,6 +71,23 @@ export default {
       this.$router.push("/game");
     }
   },
+  mounted() {
+    if(TimerManager.current != null)
+      TimerManager.current.setDirection("pause");
+    
+    if(Board.current != null)
+      Board.current.active = false;
+    
+    if(Simulation.current != null){
+      console.log("UM");
+      Simulation.current.generations = null;
+      new Simulation();
+    }
+    
+    if(Tool.current != null)
+      Tool.current.deactivate();
+    window.scrollTo(0,0);
+  }
 }
 </script>
 

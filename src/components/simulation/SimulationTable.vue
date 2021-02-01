@@ -26,8 +26,6 @@ import GameSettings from "./GameSettings"
 
 import Board from "../../game/board"
 import Saves from "../../game/saves"
-import TimerManager from "../../game/simulation/time"
-import Tool from "../../game/tools/tool"
 import Simulation from "../../game/simulation/simulation"
 
 export default {
@@ -39,6 +37,8 @@ export default {
   },
   
   async mounted() {
+    console.log("MT")
+    window.scrollTo(0,0);
     var board = Board.current;
     if(board != null && board.width != 900)
       board = null;
@@ -55,11 +55,5 @@ export default {
     board.append("canvas");
     new Simulation();
   },
-
-  beforeUnmount() {
-    Board.current.active = false;
-    Tool.current.deactivate();
-    TimerManager.current.setDirection("pause");
-  }
 }
 </script> 
