@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import TimeManager from "../game/simulation/time";
+import TimeManager from "../../game/simulation/time";
 export default {
   name: "TimeControl",
 
@@ -54,7 +54,7 @@ export default {
 
   data: () => ({
     timeDirection: "pause",
-    timeSpeed: 1,
+    timeSpeed: 10,
   }),
 
   mounted() {

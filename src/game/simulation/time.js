@@ -6,7 +6,7 @@ export default class TimeManager {
   constructor(updateCallback) {
     this.updateCallback = updateCallback;
     this.timer = null;
-    this.speed = 1;
+    this.speed = 10;
     this.direction = "pause";
     TimeManager.current = this;
   }

@@ -104,11 +104,11 @@
 </template>
 
 <script>
-import Brush from "../game/tools/brush"
-import Fill from "../game/tools/fill"
-import Line from "../game/tools/line"
-import Rectangle from "../game/tools/rectangle"
-import Route from "../game/tools/route"
+import Brush from "../../game/tools/brush"
+import Fill from "../../game/tools/fill"
+import Line from "../../game/tools/line"
+import Rectangle from "../../game/tools/rectangle"
+import Route from "../../game/tools/route"
 
 export default {
   name: "EditorTools",

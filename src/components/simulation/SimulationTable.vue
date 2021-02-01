@@ -8,7 +8,7 @@
       </v-col>
 
       <v-col cols="8" align="center">
-        <canvas id="canvas"/>
+        <canvas id="canvas" style="cursor: cell"/>
       </v-col>
 
       <v-col cols="2">
@@ -24,26 +24,24 @@ import EditorTools from "./EditorTools"
 import TimeControl from "./TimeControl"
 import GameSettings from "./GameSettings"
 
-import Board from "../game/board"
-import Saves from "../game/saves"
-import TimerManager from "../game/simulation/time"
-import Tool from "../game/tools/tool"
-import Simulation from "../game/simulation/simulation"
+import Board from "../../game/board"
+import Saves from "../../game/saves"
+import TimerManager from "../../game/simulation/time"
+import Tool from "../../game/tools/tool"
+import Simulation from "../../game/simulation/simulation"
 
 export default {
   name: 'SimulationTable',
-
   components: {
     EditorTools,
     TimeControl,
     GameSettings,
   },
-
-  data: () => ({
-  }),
-
+  
   async mounted() {
     var board = Board.current;
+    if(board != null && board.width != 900)
+      board = null;
 
     if(board == null) {
       const saves = await Saves.getSaves();

@@ -20,6 +20,9 @@ export default class Saves {
   }
 
   static async load(name) {
+    return Saves.loadSync(name);
+  }
+  static loadSync(name) {
     name = this.toBase64(name);
     
     var data = localStorage.getItem("save."+name);
@@ -29,6 +32,9 @@ export default class Saves {
   }
 
   static async getSaves() {
+    return Saves.getSavesSync();
+  }
+  static getSavesSync() {
     const saves = [];
 
     for(let i = 0; i < localStorage.length; i++){

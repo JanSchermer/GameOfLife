@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import SimulationTable from "../components/SimulationTable";
-import LoadTable from "../components/LoadTable";
+import SimulationTable from "../components/simulation/SimulationTable";
+import LoadTable from "../components/load/LoadTable";
 
 Vue.use(VueRouter);
 

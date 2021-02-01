@@ -106,8 +106,8 @@
 </template>
 
 <script>
-import Board from "../game/board"
-import Saves from "../game/saves"
+import Board from "../../game/board"
+import Saves from "../../game/saves"
 
 export default {
   name: "GameSettings",

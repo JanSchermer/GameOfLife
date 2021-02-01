@@ -72,10 +72,12 @@ export default class Board{
       for(let x = 0; x < canvas.width / resolution; x++){
         
         // Draw backgorund
-        ctx.beginPath();
-        ctx.rect(resolution * y, resolution*  x, resolution, resolution);
-        ctx.fillStyle = background[y][x];
-        ctx.fill();
+        if(background != null) {
+          ctx.beginPath();
+          ctx.rect(resolution * y, resolution*  x, resolution, resolution);
+          ctx.fillStyle = background[y][x];
+          ctx.fill();
+        }
         
         // Draw Grid
         if(showGrid)
